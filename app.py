@@ -10,7 +10,7 @@ from NDA_chatbot import EnhancedNDAAnalyzer
 
 # Page configuration
 st.set_page_config(
-    page_title="NDA Analyzer Chatbot",
+    page_title="Strada NDA Analyzer Chatbot",
     page_icon="📋",
     layout="wide",
     initial_sidebar_state="expanded"
