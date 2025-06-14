@@ -249,7 +249,7 @@ def main():
             # Check if logo file exists in the project directory
             logo_path = "strada_logo.png"  # Update this with your actual logo filename
             if os.path.exists(logo_path):
-                st.image(logo_path, width=200, use_column_width=False)
+                st.image(logo_path, width=200, use_container_width=False)
             else:
                 # Placeholder if no logo file found
                 st.markdown("""
