@@ -230,7 +230,7 @@ def main():
     # Main header
     st.markdown("""
     <div class="main-header">
-        <h1>📋 NDA Analyzer Chatbot</h1>
+        <h1>📋 Strada NDA Analyzer Chatbot</h1>
         <p>Intelligent Analysis of Non-Disclosure Agreements</p>
     </div>
     """, unsafe_allow_html=True)
