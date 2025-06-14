@@ -18,7 +18,7 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain.prompts import ChatPromptTemplate,PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from typing import Dict, Any, List
-from IPython.display import display, Markdown
+#from IPython.display import display, Markdown
 
 class EnhancedNDAAnalyzer:
     def __init__(self, openai_api_key: str, model_name: str = 'gpt-4o'):
