@@ -6,7 +6,7 @@ import requests
 import warnings
 warnings.filterwarnings('ignore')
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_community.vectorstores import Chroma
+from langchain_community.vectorstores import FAISS  # Changed from Chroma to FAISS
 #from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain_openai import ChatOpenAI
 
@@ -18,7 +18,6 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain.prompts import ChatPromptTemplate,PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from typing import Dict, Any, List
-#from IPython.display import display, Markdown
 
 class EnhancedNDAAnalyzer:
     def __init__(self, openai_api_key: str, model_name: str = 'gpt-4o'):
@@ -279,40 +278,43 @@ Answer:"""
             return f"❌ Error performing legal analysis: {str(e)}"
 
     def setup_rag_chain(self):
-        """Setup RAG chain for Q&A functionality"""
+        """Setup RAG chain for Q&A functionality using FAISS"""
         if not self.documents:
             return None
 
-        # Split documents into chunks
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000,
-            chunk_overlap=200,
-            separators=["\n\n", "\n", " ", ""],
-        )
-        chunks = text_splitter.split_documents(self.documents)
+        try:
+            # Split documents into chunks
+            text_splitter = RecursiveCharacterTextSplitter(
+                chunk_size=1000,
+                chunk_overlap=200,
+                separators=["\n\n", "\n", " ", ""],
+            )
+            chunks = text_splitter.split_documents(self.documents)
 
-        # Create vectorstore
-        self.vectorstore = Chroma.from_documents(
-            chunks,
-            embedding=self.embeddings,
-            persist_directory="./nda_chroma_db"
-        )
+            # Create FAISS vectorstore (instead of Chroma)
+            self.vectorstore = FAISS.from_documents(
+                chunks,
+                embedding=self.embeddings
+            )
 
-        # Create QA prompt
-        qa_prompt = PromptTemplate(
-            template=self.qa_prompt_template,
-            input_variables=["context", "question"]
-        )
+            # Create QA prompt
+            qa_prompt = PromptTemplate(
+                template=self.qa_prompt_template,
+                input_variables=["context", "question"]
+            )
 
-        # Create retrieval QA chain
-        qa_chain = RetrievalQA.from_chain_type(
-            llm=self.llm,
-            chain_type="stuff",
-            retriever=self.vectorstore.as_retriever(search_kwargs={"k": 4}),
-            chain_type_kwargs={"prompt": qa_prompt},
-            return_source_documents=True
-        )
-        return qa_chain
+            # Create retrieval QA chain
+            qa_chain = RetrievalQA.from_chain_type(
+                llm=self.llm,
+                chain_type="stuff",
+                retriever=self.vectorstore.as_retriever(search_kwargs={"k": 4}),
+                chain_type_kwargs={"prompt": qa_prompt},
+                return_source_documents=True
+            )
+            return qa_chain
+        except Exception as e:
+            print(f"❌ Error setting up RAG chain: {str(e)}")
+            return None
 
     def get_conversation_context(self, max_exchanges: int = 3) -> str:
         """Get recent conversation context for continuity"""
@@ -335,7 +337,7 @@ Answer:"""
         try:
             qa_chain = self.setup_rag_chain()
             if qa_chain is None:
-                return {"answer": "❌ No NDA document loaded for Q&A"}
+                return {"answer": "❌ No NDA document loaded for Q&A or error setting up search"}
 
             # Add conversation context to the question
             conversation_context = self.get_conversation_context()
